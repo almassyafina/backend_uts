@@ -1,107 +1,108 @@
 import { Request, Response } from "express";
-import { Event } from "../types/event";
+import { prisma } from "../db/db";
 
-let events: Event[] = [];
-let nextId = 1;
-
-
-//1 menampilkan data event
-export const getEvent = (req: Request, res: Response) => {
-    res.status(200).json({ message: "data event berhasil ditampilkan", data: events });
-    };
-
-//2 menyimpan data event
-export const createEvent = (req: Request, res: Response) => {
-    const { name, date, location, description } = req.body;
-    let newEvent: Event;
-    if (!name) {
-        res.status(500).json({ message: "nama belum diisi" });
-        return; 
+// 1. Menampilkan semua data event dari database
+export const getEvent = async (req: Request, res: Response) => {
+    try {
+        const events = await prisma.event.findMany();
+        return res.status(200).json({ 
+            success: true, 
+            message: "Data event berhasil ditampilkan", 
+            data: events 
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Gagal mengambil data event" });
     }
-
-    newEvent = {
-        id: Date.now(), 
-        name: name,
-        date: date,
-        location: location,
-        description: description
-    };
-    
-    events.push(newEvent);
-    res.status(201).json({ message: "event berhasil disimpan", data: newEvent });
-    };
-
-//3 menampilkan data event berdasarkan id
-export const showEvent = (req: Request<{ id: string }>, res: Response): void => {
-    const eventId = parseInt(req.params.id, 10);
-    const event = events.find((e) => e.id === eventId);
-
-    if (!event) {
-        res.status(404).json({ success: false, message: 'Event tidak ditemukan' });
-        return;
-    }
-
-    res.status(200).json({ success: true, data: event });
 };
 
+// 2. Menyimpan data event ke database
+export const createEvent = async (req: Request, res: Response) => {
+    const { name, date, location, description } = req.body;
 
+    if (!name) {
+        return res.status(400).json({ success: false, message: "Nama harus diisi" });
+    }
 
-//4 mengupdate event berdasarkan id
-export const updateEvent = (req: Request<{ id: string }>, res: Response) => {
+    try {
+        const newEvent = await prisma.event.create({
+            data: {
+                name,
+                date: date ? new Date(date) : new Date(), // Pastikan format tanggal benar
+                location,
+                description
+            }
+        });
+
+        return res.status(201).json({ 
+            success: true, 
+            message: "Event berhasil disimpan", 
+            data: newEvent 
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Gagal menyimpan event" });
+    }
+};
+
+// 3. Menampilkan data event berdasarkan id
+export const showEvent = async (req: Request<{ id: string }>, res: Response) => {
     const eventId = parseInt(req.params.id, 10);
-    const eventIndex = events.findIndex((e) => e.id === eventId);
 
-    if (eventIndex === -1) {
-        res.status(404).json({ success: false, message: 'Event tidak ditemukan' });
-        return;
-    }
+    try {
+        const event = await prisma.event.findUnique({
+            where: { id: eventId }
+        });
 
-    const existingEvent = events[eventIndex];
-
-    if (!existingEvent) {
-        res.status(404).json({ success: false, message: 'Event tidak valid' });
-        return;
-    }
-
-    const { name, description, date, location } = req.body;
-
-    const updatedEvent: Event = {
-        id: existingEvent.id, 
-        name: name || existingEvent.name,
-        description: description || existingEvent.description,
-        date: date || existingEvent.date,
-        location: location || existingEvent.location
-    };
-
-    events[eventIndex] = updatedEvent;
-
-    res.status(200).json({
-        success: true,
-        message: 'Event berhasil diperbarui',
-        data: updatedEvent
-    });
-
-        
-    };
-
-
-
-//5 menghapus event berdasarkan id
-export const deleteEvent = (req: Request<{ id: string }>, res: Response) => {
-        const eventId = parseInt(req.params.id, 10);
-        const eventIndex = events.findIndex((e) => e.id === eventId);
-    
-        if (eventIndex === -1) {
-            res.status(404).json({ success: false, message: 'Event tidak ditemukan' });
-            return;
+        if (!event) {
+            return res.status(404).json({ success: false, message: 'Event tidak ditemukan' });
         }
 
-        const deletedEvent = events.splice(eventIndex, 1);
-    
-        res.status(200).json({
-            success: true,
-            message: 'Event berhasil dihapus',
-            data: deletedEvent[0]
+        return res.status(200).json({ success: true, data: event });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Terjadi kesalahan server" });
+    }
+};
+
+// 4. Mengupdate event berdasarkan id
+export const updateEvent = async (req: Request<{ id: string }>, res: Response) => {
+    const eventId = parseInt(req.params.id, 10);
+    const { name, description, date, location } = req.body;
+
+    try {
+        const updatedEvent = await prisma.event.update({
+            where: { id: eventId },
+            data: {
+                name,
+                description,
+                date: date ? new Date(date) : undefined,
+                location
+            }
         });
-        
-    };
+
+        return res.status(200).json({
+            success: true,
+            message: 'Event berhasil diperbarui',
+            data: updatedEvent
+        });
+    } catch (error) {
+        // Prisma melempar error jika record tidak ditemukan saat update
+        return res.status(404).json({ success: false, message: 'Event tidak ditemukan atau gagal diupdate' });
+    }
+};
+
+// 5. Menghapus event berdasarkan id
+export const deleteEvent = async (req: Request<{ id: string }>, res: Response) => {
+    const eventId = parseInt(req.params.id, 10);
+
+    try {
+        await prisma.event.delete({
+            where: { id: eventId }
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: 'Event berhasil dihapus'
+        });
+    } catch (error) {
+        return res.status(404).json({ success: false, message: 'Event tidak ditemukan atau gagal dihapus' });
+    }
+};
