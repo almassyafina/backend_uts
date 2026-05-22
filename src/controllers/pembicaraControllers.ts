@@ -27,7 +27,7 @@ export const createpembicara = async (req: Request, res: Response): Promise<void
             data: {
                 name: name,
                 role: role,
-                foto: image, // Sesuaikan dengan nama field di schema.prisma Anda
+                image: image,// Sesuaikan dengan nama field di schema.prisma Anda
             },
         });
         res.status(201).json({ message: "pembicara berhasil disimpan", data: newPembicara });
@@ -78,7 +78,7 @@ export const updatePembicara = async (req: Request<{ id: string }>, res: Respons
             data: {
                 name: name || existingPembicara.name,
                 role: role || existingPembicara.role,
-                foto: image || existingPembicara.foto,
+                image: image || existingPembicara.image,
             },
         });
 

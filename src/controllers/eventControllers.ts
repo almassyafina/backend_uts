@@ -27,10 +27,11 @@ export const createEvent = async (req: Request, res: Response) => {
         const newEvent = await prisma.event.create({
             data: {
                 name,
-                date: date ? new Date(date) : new Date(), // Pastikan format tanggal benar
+                categoryId: Number("categoryId"),
                 location,
-                description
-            }
+                dateEvent: new Date(date),
+                description,
+            },
         });
 
         return res.status(201).json({ 
