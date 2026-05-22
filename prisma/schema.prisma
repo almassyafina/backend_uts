@@ -25,6 +25,7 @@ model Event{
   id Int @id @default(autoincrement())
   name String
   categoryId Int @map("category_id")
+  pembicaraId Int @map("pembicara_id")
   location String
   dateEvent DateTime @default(now()) @map("date_event")
   description String

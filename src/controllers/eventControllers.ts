@@ -17,19 +17,23 @@ export const getEvent = async (req: Request, res: Response) => {
 
 // 2. Menyimpan data event ke database
 export const createEvent = async (req: Request, res: Response) => {
-    const { name, date, location, description } = req.body;
+    // 1. Ambil semua field yang dikirim dari body
+    const { name, category_id, pembicara_id, location, date_event, description } = req.body;
 
-    if (!name) {
-        return res.status(400).json({ success: false, message: "Nama harus diisi" });
+    // 2. Validasi sederhana
+    if (!name || !category_id || !pembicara_id) {
+        return res.status(400).json({ success: false, message: "Field wajib harus diisi" });
     }
 
     try {
         const newEvent = await prisma.event.create({
             data: {
                 name,
-                categoryId: Number("categoryId"),
+                // Gunakan nilai yang benar dari variabel, pastikan diubah ke Number
+                categoryId: Number(category_id),
+                pembicaraId: Number(pembicara_id),
                 location,
-                dateEvent: new Date(date),
+                dateEvent: new Date(date_event), 
                 description,
             },
         });
@@ -40,6 +44,7 @@ export const createEvent = async (req: Request, res: Response) => {
             data: newEvent 
         });
     } catch (error) {
+        console.error(error); // Penting untuk melihat log error sebenarnya di Railway
         return res.status(500).json({ success: false, message: "Gagal menyimpan event" });
     }
 };
