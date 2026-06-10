@@ -5,6 +5,7 @@ import eventRoutes from "./routes/eventRoute";
 import categoryRoutes from "./routes/categoryRoute";
 import pembicaraRoutes from "./routes/pembicaraRoute";
 import authRoutes from "./routes/authRoute";
+import userRoutes from "./routes/userRoute";
 
 
 
@@ -23,6 +24,7 @@ app.use("/events", eventRoutes);
 app.use("/categories", categoryRoutes);
 app.use("/pembicara", pembicaraRoutes);
 app.use("/auth", authRoutes);
+app.use("/users", userRoutes);
 
 
 
