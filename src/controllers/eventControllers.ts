@@ -29,7 +29,6 @@ export const createEvent = async (req: Request, res: Response) => {
         const newEvent = await prisma.event.create({
             data: {
                 name,
-                // Gunakan nilai yang benar dari variabel, pastikan diubah ke Number
                 categoryId: Number(category_id),
                 pembicaraId: Number(pembicara_id),
                 location,
@@ -44,7 +43,7 @@ export const createEvent = async (req: Request, res: Response) => {
             data: newEvent 
         });
     } catch (error) {
-        console.error(error); // Penting untuk melihat log error sebenarnya di Railway
+        console.error(error); 
         return res.status(500).json({ success: false, message: "Gagal menyimpan event" });
     }
 };
@@ -74,15 +73,11 @@ export const updateEvent = async (req: Request<{ id: string }>, res: Response) =
     const { name, description, dateEvent, location } = req.body;
 
     try {
-        // 1. Tampung dulu data yang pasti bisa diupdate
         const dataToUpdate: any = {
             name,
             description,
             location
         };
-
-        // 2. Cek apakah frontend mengirimkan dateEvent baru?
-        // Jika iya, ubah formatnya ke Date object lalu masukkan ke dataToUpdate
         if (dateEvent) {
             dataToUpdate.dateEvent = new Date(dateEvent);
         }

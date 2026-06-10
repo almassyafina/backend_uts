@@ -9,7 +9,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -44,3 +44,21 @@ model Pembicara{
   @@map("pembicaras")
 }
 
+model User {
+ id Int @id @default(autoincrement())
+ name String
+ email String @unique
+ password String
+ image String
+ createdAt DateTime @default(now()) @map("created_at")
+
+ @@map("users")
+}
+
+model Role{
+  Id Int @id @default(autoincrement())
+  name String @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("roles")
+}
